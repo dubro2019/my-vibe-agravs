@@ -1,0 +1,195 @@
+:root {
+    --primary-color: #007AFF; /* iOS Blue */
+    --bg-color: #F2F2F7; /* iOS System Gray 6 */
+    --surface-color: #FFFFFF;
+    --text-primary: #000000;
+    --text-secondary: #8E8E93;
+    --border-color: #C6C6C8;
+    --border-radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    justify-content: center;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 375px; /* iPhone width */
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+header {
+    background-color: var(--surface-color);
+    padding: 16px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+header h1 {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+main {
+    padding: 20px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.input-group.row {
+    display: flex;
+    gap: 16px;
+    background-color: transparent;
+    padding: 0;
+    box-shadow: none;
+}
+
+.input-item {
+    flex: 1;
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+input[type="number"] {
+    width: 100%;
+    height: 50px;
+    border: none;
+    font-size: 20px;
+    font-weight: 700;
+    outline: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--text-primary);
+    background: transparent;
+}
+
+input::placeholder {
+    color: #C7C7CC;
+    font-weight: 400;
+}
+
+button {
+    width: 100%;
+    height: 56px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+button:active {
+    opacity: 0.8;
+    transform: scale(0.98);
+}
+
+.result-container {
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 24px 20px;
+    animation: slideUp 0.3s ease-out;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
+.result-container h2 {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.result-row:last-child {
+    margin-bottom: 0;
+}
+
+.result-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.result-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.unit {
+    font-size: 15px;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.result-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 20px 0;
+    opacity: 0.3;
+}
+
+.remainder .result-label {
+    color: var(--text-secondary);
+}
+
+.remainder .result-value {
+    font-size: 20px;
+    color: var(--primary-color);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

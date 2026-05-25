@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>割り勘計算機</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>割り勘計算</h1>
+        </header>
+        
+        <main>
+            <div class="input-group">
+                <label for="total-amount">総額（円）</label>
+                <input type="number" id="total-amount" placeholder="例: 15000" inputmode="numeric">
+            </div>
+
+            <div class="input-group row">
+                <div class="input-item">
+                    <label for="boss-count">上司の人数（人）</label>
+                    <input type="number" id="boss-count" placeholder="例: 2" inputmode="numeric">
+                </div>
+                <div class="input-item">
+                    <label for="sub-count">部下の人数（人）</label>
+                    <input type="number" id="sub-count" placeholder="例: 3" inputmode="numeric">
+                </div>
+            </div>
+
+            <button id="calculate-btn">計算する</button>
+
+            <div class="result-container" id="result-container" style="display: none;">
+                <h2>計算結果</h2>
+                <div class="result-row">
+                    <span class="result-label">上司の支払額</span>
+                    <span class="result-value"><span id="res-boss">0</span><span class="unit">円</span></span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">部下の支払額</span>
+                    <span class="result-value"><span id="res-sub">0</span><span class="unit">円</span></span>
+                </div>
+                <div class="result-divider"></div>
+                <div class="result-row remainder">
+                    <span class="result-label">余り（積立金）</span>
+                    <span class="result-value"><span id="res-remainder">0</span><span class="unit">円</span></span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
