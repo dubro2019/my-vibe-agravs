@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日の目標 - 習慣管理アプリ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    /* Design Tokens / CSS Variables */
+    :root {
+      --bg-gradient-start: #0b0f19;
+      --bg-gradient-end: #111827;
+      --card-bg: rgba(31, 41, 55, 0.6);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --accent-color: #f97316; /* Premium Orange */
+      
+      /* Button States */
+      --btn-gray: #4b5563; /* Slate/Gray */
+      --btn-gray-hover: #6b7280;
+      --btn-orange: #f97316; /* Orange */
+      --btn-orange-hover: #ea580c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+      background: radial-gradient(circle at center, #1e293b 0%, var(--bg-gradient-start) 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient decorative blurred spheres for depth */
+    .ambient-sphere {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.5;
+      transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sphere-1 {
+      width: 350px;
+      height: 350px;
+      background: rgba(99, 102, 241, 0.2); /* Indigo */
+      top: 15%;
+      left: 10%;
+    }
+
+    .sphere-2 {
+      width: 400px;
+      height: 400px;
+      background: rgba(249, 115, 22, 0.1); /* Orange glow */
+      bottom: 10%;
+      right: 10%;
+    }
+
+    /* Active completion ambient glow changes */
+    body.completed-state .sphere-2 {
+      background: rgba(249, 115, 22, 0.35);
+      width: 500px;
+      height: 500px;
+      filter: blur(80px);
+    }
+
+    /* Main Wrapper to fix Android alignment bug */
+    .app-container {
+      position: relative;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Main Habit Tracker Card */
+    .card {
+      position: relative;
+      z-index: 10;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 48px 40px;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Streak HUD */
+    .streak-hud {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 16px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+      transition: all 0.4s ease;
+    }
+
+    .streak-hud svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: var(--text-secondary);
+      stroke-width: 2.5;
+      transition: stroke 0.4s ease, filter 0.4s ease;
+    }
+
+    .streak-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+    }
+
+    .streak-number {
+      font-weight: 800;
+      color: var(--text-primary);
+      transition: color 0.4s ease;
+    }
+
+    /* Icon Container */
+    .icon-container {
+      width: 76px;
+      height: 76px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px dashed rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 28px;
+      position: relative;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .icon-container svg {
+      width: 36px;
+      height: 36px;
+      stroke: var(--text-secondary);
+      stroke-width: 1.8;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 画面中央の目標テキスト */
+    .goal-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 36px;
+      line-height: 1.35;
+      background: linear-gradient(to right, #ffffff, #e2e8f0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      transition: all 0.5s ease;
+    }
+
+    /* 完了ボタン */
+    .btn-action {
+      width: 100%;
+      height: 60px;
+      background-color: var(--btn-gray);
+      color: #ffffff;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .btn-action:hover {
+      background-color: var(--btn-gray-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-action:active {
+      transform: translateY(1px);
+    }
+
+    /* 達成済み状態のボタン */
+    .btn-action.completed {
+      background-color: var(--btn-orange);
+      background-image: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      box-shadow: 0 10px 25px rgba(249, 115, 22, 0.4);
+    }
+
+    .btn-action.completed:hover {
+      background-image: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+      box-shadow: 0 12px 30px rgba(249, 115, 22, 0.55);
+      transform: scale(1.02) translateY(-1px);
+    }
+
+    /* 達成時の各種アニメーション用スタイル */
+    body.completed-state .streak-hud {
+      background: rgba(249, 115, 22, 0.1);
+      border-color: rgba(249, 115, 22, 0.2);
+    }
+
+    body.completed-state .streak-hud svg {
+      stroke: var(--accent-color);
+      filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.4));
+    }
+
+    body.completed-state .streak-number {
+      color: #ffedd5;
+    }
+
+    body.completed-state .icon-container {
+      background: rgba(249, 115, 22, 0.1);
+      border: 1.5px solid rgba(249, 115, 22, 0.3);
+      transform: scale(1.1) rotate(10deg);
+    }
+
+    body.completed-state .icon-container svg {
+      stroke: var(--accent-color);
+      transform: scale(1.1);
+    }
+
+    body.completed-state .goal-title {
+      background: linear-gradient(to right, #ffffff, #ffedd5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 達成メッセージ */
+    .celebration-banner {
+      opacity: 0;
+      transform: translateY(10px);
+      max-height: 0;
+      margin-top: 0;
+      color: #ffedd5;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    body.completed-state .celebration-banner {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 50px;
+      margin-top: 24px;
+    }
+
+    .status-check {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: none;
+    }
+
+    .btn-action.completed .status-check {
+      display: block;
+      animation: checkPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes checkPop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      z-index: 999;
+      border-radius: 50%;
+    }
+
+    /* リセットボタン */
+    .reset-btn {
+      position: relative;
+      margin-top: 16px;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    .reset-btn:hover {
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* カレンダーセクション */
+    .calendar-section {
+      margin-top: 36px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 24px;
+      text-align: left;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .calendar-month {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.03em;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      row-gap: 6px;
+      column-gap: 4px;
+      text-align: center;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-radius: 8px;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: default;
+    }
+
+    .calendar-day.empty {
+      pointer-events: none;
+    }
+
+    .calendar-day.current-month {
+      color: #e5e7eb;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .calendar-day.current-month:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .calendar-day.today {
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.25);
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+
+    .calendar-day .star-icon {
+      position: absolute;
+      bottom: 2px;
+      font-size: 0.55rem;
+      color: var(--accent-color);
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      line-height: 1;
+    }
+
+    .calendar-day.marked .star-icon {
+      opacity: 1;
+      transform: scale(1);
+      text-shadow: 0 0 4px rgba(249, 115, 22, 0.5);
+    }
+
+    .calendar-day.marked .day-number {
+      transform: translateY(-5px);
+      font-size: 0.7rem;
+    }
+
+    .day-number {
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 400px) {
+      .card {
+        padding: 36px 20px 28px;
+        width: 92%;
+      }
+      .goal-title {
+        font-size: 1.45rem;
+        margin-bottom: 28px;
+      }
+      .calendar-section {
+        margin-top: 28px;
+        padding-top: 20px;
+      }
+      .calendar-day {
+        font-size: 0.72rem;
+      }
+      .calendar-day.marked .day-number {
+        transform: translateY(-4px);
+        font-size: 0.65rem;
+      }
+      .calendar-day .star-icon {
+        font-size: 0.5rem;
+        bottom: 1px;
+      }
+    }
+
+    /* 設定ボタン (歯車マーク) */
+    .settings-trigger {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      z-index: 20;
+    }
+    .settings-trigger:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+      transform: rotate(45deg);
+    }
+    .settings-trigger svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ポップアップ（モーダル）共通スタイル */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none; /* 初期状態は非表示 */
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal-overlay.open {
+      display: flex; /* 開いた時のみ flex にする */
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: rgba(31, 41, 55, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 32px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.open .modal-content {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+      text-align: left;
+    }
+
+    .input-group {
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .input-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .text-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .text-input:focus {
+      border-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+    }
+
+    .input-hint {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    .btn-primary {
+      background: var(--accent-color);
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: #ea580c;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(249, 115, 22, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-sphere sphere-1"></div>
+  <div class="ambient-sphere sphere-2"></div>
+
+  <div class="app-container">
+    
+    <div class="card" id="habitCard">
+      
+      <button class="settings-trigger" id="settingsTrigger" aria-label="目標設定">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+      
+      <div class="streak-hud">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+        </svg>
+        <span class="streak-label">現在の習慣継続: <span class="streak-number" id="streakVal">0</span>日</span>
+      </div>
+
+      <div class="icon-container" id="iconBox">
+        <svg id="habitIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M6.5 12h11M6.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5zM17.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5z" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <h1 class="goal-title" id="goalText">今日の目標：筋トレ10分</h1>
+
+      <button class="btn-action" id="habitBtn">
+        <svg class="status-check" viewBox="0 0 24 24">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="btnText">完了</span>
+      </button>
+
+      <div class="celebration-banner" id="celebBanner">
+        <span>✨ 素晴らしい！目標を達成しました！</span>
+      </div>
+
+      <div class="calendar-section">
+        <div class="calendar-header">
+          <span class="calendar-month" id="calendarMonth">2026年5月</span>
+        </div>
+        <div class="calendar-weekdays">
+          <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+          </div>
+      </div>
+
+    </div>
+
+    <button class="reset-btn" id="resetBtn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+      </svg>
+      ステータスをリセット
+    </button>
+
+  </div>
+
+  <div class="modal-overlay" id="confirmUndoModal">
+    <div class="modal-content">
+      <h2 class="modal-title">ステータスの変更</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 24px; text-align: left;">
+        本日の目標ステータスを「未達成」に戻しますか？<br>（カレンダーの★マークも消去されます）
+      </p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="undoCancel">キャンセル</button>
+        <button class="btn-danger" id="undoConfirm">未達成に戻す</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-content">
+      <h2 class="modal-title">目標の設定</h2>
+      
+      <div class="input-group">
+        <label for="goalInput" class="input-label">新しい目標テキスト</label>
+        <input type="text" id="goalInput" class="text-input" placeholder="例: 今日の目標：筋トレ10分" maxlength="40">
+        <div class="input-hint">カードのタイトルに反映されます</div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" id="modalCancel">キャンセル</button>
+        <button class="btn-primary" id="modalSave">保存する</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    const habitBtn = document.getElementById('habitBtn');
+    const btnText = document.getElementById('btnText');
+    const habitCard = document.getElementById('habitCard');
+    const streakVal = document.getElementById('streakVal');
+    const habitIcon = document.getElementById('habitIcon');
+    const resetBtn = document.getElementById('resetBtn');
+    const calendarMonth = document.getElementById('calendarMonth');
+    const calendarGrid = document.getElementById('calendarGrid');
+
+    // Settings Modal elements
+    const settingsTrigger = document.getElementById('settingsTrigger');
+    const settingsModal = document.getElementById('settingsModal');
+    const goalInput = document.getElementById('goalInput');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalSave = document.getElementById('modalSave');
+    const goalText = document.getElementById('goalText');
+
+    // Undo Confirmation Modal elements
+    const confirmUndoModal = document.getElementById('confirmUndoModal');
+    const undoCancel = document.getElementById('undoCancel');
+    const undoConfirm = document.getElementById('undoConfirm');
+
+    let completed = false;
+
+    // Load and Apply Goal Text
+    function loadGoalText() {
+      const storedGoal = localStorage.getItem('habitGoalText');
+      if (storedGoal) {
+        goalText.textContent = storedGoal;
+      } else {
+        goalText.textContent = '今日の目標：筋トレ10分';
+      }
+    }
+
+    // Helper: Format date to YYYY-MM-DD
+    function formatDateStr(year, monthIndex, day) {
+      const mm = String(monthIndex + 1).padStart(2, '0');
+      const dd = String(day).padStart(2, '0');
+      return `${year}-${mm}-${dd}`;
+    }
+
+    // LocalStorage Data Access
+    function getCompletedDates() {
+      try {
+        const stored = localStorage.getItem('habitCompletedDates');
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.error("LocalStorage read error:", e);
+        return [];
+      }
+    }
+
+    function saveCompletedDates(dates) {
+      try {
+        localStorage.setItem('habitCompletedDates', JSON.stringify(dates));
+      } catch (e) {
+        console.error("LocalStorage write error:", e);
+      }
+    }
+
+    // Dynamic Streak Calculation
+    function calculateAndShowStreak(completedDates) {
+      if (!completedDates || completedDates.length === 0) {
+        streakVal.textContent = '0';
+        return;
+      }
+
+      const dates = completedDates
+        .map(dStr => new Date(dStr + 'T00:00:00'))
+        .filter(d => !isNaN(d.getTime()))
+        .sort((a, b) => b - a);
+
+      if (dates.length === 0) {
+        streakVal.textContent = '0';
+        return;
+      }
+
+      const now = new Date();
+      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const latestDate = dates[0];
+      const diffFromToday = todayMidnight.getTime() - latestDate.getTime();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+
+      if (diffFromToday > oneDayMs) {
+        streakVal.textContent = '0';
+        return;
+      }
+
+      let streak = 0;
+      let checkDate = new Date(latestDate);
+      const dateSet = new Set(completedDates);
+      
+      while (true) {
+        const checkStr = formatDateStr(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
+        if (dateSet.has(checkStr)) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+
+      streakVal.textContent = streak;
+    }
+
+    // Calendar Generation Logic
+    const todayDate = new Date();
+    const currentYear = todayDate.getFullYear();
+    const currentMonthIndex = todayDate.getMonth();
+    const currentDateVal = todayDate.getDate();
+
+    function renderCalendar() {
+      calendarGrid.innerHTML = '';
+      calendarMonth.textContent = `${currentYear}年${currentMonthIndex + 1}月`;
+
+      const firstDay = new Date(currentYear, currentMonthIndex, 1).getDay();
+      const totalDays = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
+      const completedDates = getCompletedDates();
+
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-day empty';
+        calendarGrid.appendChild(emptyCell);
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.className = 'calendar-day current-month';
+        
+        const isToday = (day === currentDateVal && currentMonthIndex === new Date().getMonth() && currentYear === new Date().getFullYear());
+        if (isToday) {
+          dayCell.classList.add('today');
+          dayCell.id = 'todayCalendarCell';
+        }
+
+        const dayNum = document.createElement('span');
+        dayNum.className = 'day-number';
+        dayNum.textContent = day;
+        dayCell.appendChild(dayNum);
+
+        const starIcon = document.createElement('span');
+        starIcon.className = 'star-icon';
+        starIcon.textContent = '★';
+        dayCell.appendChild(starIcon);
+
+        const dateStr = formatDateStr(currentYear, currentMonthIndex, day);
+        if (completedDates.includes(dateStr)) {
+          dayCell.classList.add('marked');
+        }
+
+        calendarGrid.appendChild(dayCell);
+      }
+    }
+
+    function checkTodayCompletion() {
+      const now = new Date();
+      const todayStr = formatDateStr(now.getFullYear(), now.getMonth(), now.getDate());
+      const completedDates = getCompletedDates();
+      
+      calculateAndShowStreak(completedDates);
+
+      let lastCompletedDate = null;
+      if (completedDates.length > 0) {
+        const sortedDates = [...completedDates].sort((a, b) => new Date(b) - new Date(a));
+        lastCompletedDate = sortedDates[0];
+      }
+
+      if (lastCompletedDate === todayStr) {
+        completed = true;
+        document.body.classList.add('completed-state');
+        habitBtn.classList.add('completed');
+        btnText.textContent = '達成済み！';
+        
+        habitIcon.innerHTML = `
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6v5zm12 0h1.5a2.5 2.5 0 0 0 0-5H18v5z" stroke="currentColor" stroke-width="2"/>
+          <path d="M18 4H6v5c0 3.3 2.7 6 6 6s6-2.7 6-6V4z" fill="rgba(249, 115, 22, 0.2)" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 15v5M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        `;
+      } else {
+        completed = false;
+        document.body.classList.remove('completed-state');
+        habitBtn.classList.remove('completed');
+        btnText.textContent = '完了';
+        
+        habitIcon.innerHTML = `
+          <path d="M6.5 12h11M6.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5zM17.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5z" stroke-linecap="round" stroke-linejoin="round"/>
+        `;
+      }
+    }
+
+    // Run initialization
+    loadGoalText();
+    renderCalendar();
+    checkTodayCompletion();
+
+    // Audio chime logic
+    function playChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc1.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.15);
+        gain1.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start();
+        osc1.stop(audioCtx.currentTime + 0.45);
+
+        setTimeout(() => {
+          const osc2 = audioCtx.createOscillator();
+          const gain2 = audioCtx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime);
+          osc2.frequency.exponentialRampToValueAtTime(1318.51, audioCtx.currentTime + 0.2);
+          gain2.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+          osc2.connect(gain2);
+          gain2.connect(audioCtx.destination);
+          osc2.start();
+          osc2.stop(audioCtx.currentTime + 0.5);
+        }, 80);
+      } catch (err) {
+        console.warn("Audio Context blocked or not supported", err);
+      }
+    }
+
+    // Confetti particles
+    function popConfetti(x, y) {
+      const colors = ['#f97316', '#fdba74', '#fb923c', '#ff007f', '#ffffff'];
+      const totalParticles = 40;
+
+      for (let i = 0; i < totalParticles; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        document.body.appendChild(particle);
+
+        const size = Math.random() * 8 + 4;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = Math.random() * 12 + 6;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        let posX = x;
+        let posY = y;
+        let opacity = 1;
+        
+        function updateParticle() {
+          posX += vx;
+          posY += vy + 0.2;
+          opacity -= 0.02;
+          particle.style.left = `${posX}px`;
+          particle.style.top = `${posY}px`;
+          particle.style.opacity = opacity;
+          if (opacity > 0) {
+            requestAnimationFrame(updateParticle);
+          } else {
+            particle.remove();
+          }
+        }
+        requestAnimationFrame(updateParticle);
+      }
+    }
+
+    // Click action button
+    habitBtn.addEventListener('click', (e) => {
+      if (completed) {
+        confirmUndoModal.classList.add('open');
+        return;
+      }
+
+      completed = true;
+      document.body.classList.add('completed-state');
+      habitBtn.classList.add('completed');
+      btnText.textContent = '達成済み！';
+      streakVal.textContent = '1';
+
+      habitIcon.innerHTML = `
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6v5zm12 0h1.5a2.5 2.5 0 0 0 0-5H18v5z" stroke="currentColor" stroke-width="2"/>
+        <path d="M18 4H6v5c0 3.3 2.7 6 6 6s6-2.7 6-6V4z" fill="rgba(249, 115, 22, 0.2)" stroke="currentColor" stroke-width="2"/>
+        <path d="M12 15v5M9 20h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      `;
+
+      playChime();
+      const rect = habitBtn.getBoundingClientRect();
+      popConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+      const todayCell = document.getElementById('todayCalendarCell');
+      if (todayCell) {
+        todayCell.classList.add('marked');
+      }
+
+      const todayStr = formatDateStr(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+      const completedDates = getCompletedDates();
+      if (!completedDates.includes(todayStr)) {
+        completedDates.push(todayStr);
+        saveCompletedDates(completedDates);
+      }
+      calculateAndShowStreak(completedDates);
+
+      const end = Date.now() + 3000;
+      confetti({
+        particleCount: 140,
+        spread: 80,
+        origin: { y: 0.6 },
+        disableForced3d: true
+      });
+
+      (function frame() {
+        confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0, y: 0.85 } });
+        confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1, y: 0.85 } });
+        if (Date.now() < end) { requestAnimationFrame(frame); }
+      }());
+    });
+
+    // Reset button
+    resetBtn.addEventListener('click', () => {
+      completed = false;
+      document.body.classList.remove('completed-state');
+      habitBtn.classList.remove('completed');
+      btnText.textContent = '完了';
+
+      const todayCell = document.getElementById('todayCalendarCell');
+      if (todayCell) { todayCell.classList.remove('marked'); }
+
+      const todayStr = formatDateStr(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+      let completedDates = getCompletedDates();
+      completedDates = completedDates.filter(d => d !== todayStr);
+      saveCompletedDates(completedDates);
+      calculateAndShowStreak(completedDates);
+
+      habitIcon.innerHTML = `
+        <path d="M6.5 12h11M6.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5zM17.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5z" stroke-linecap="round" stroke-linejoin="round"/>
+      `;
+    });
+
+    // ⚙️ 目標設定モーダルの開閉 & 保存処理
+    settingsTrigger.addEventListener('click', () => {
+      goalInput.value = goalText.textContent; // 現在の目標をインプットに初期表示
+      settingsModal.classList.add('open');    // モーダルを開く
+      goalInput.focus();
+    });
+
+    function closeModal() {
+      settingsModal.classList.remove('open');
+    }
+
+    modalCancel.addEventListener('click', closeModal);
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) { closeModal(); }
+    });
+
+    // 保存ボタンが押された時の処理
+    modalSave.addEventListener('click', () => {
+      const newGoalText = goalInput.value.trim();
+      if (newGoalText) {
+        localStorage.setItem('habitGoalText', newGoalText); // ブラウザに保存
+        goalText.textContent = newGoalText;                // 画面のタイトルを書き換え
+        closeModal();
+      }
+    });
+
+    // 未達成に戻すモーダルの開閉処理
+    function closeUndoModal() {
+      confirmUndoModal.classList.remove('open');
+    }
+
+    undoCancel.addEventListener('click', closeUndoModal);
+    confirmUndoModal.addEventListener('click', (e) => {
+      if (e.target === confirmUndoModal) { closeUndoModal(); }
+    });
+
+    undoConfirm.addEventListener('click', () => {
+      completed = false;
+      document.body.classList.remove('completed-state');
+      habitBtn.classList.remove('completed');
+      btnText.textContent = '完了';
+
+      const todayCell = document.getElementById('todayCalendarCell');
+      if (todayCell) { todayCell.classList.remove('marked'); }
+
+      const todayStr = formatDateStr(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+      let completedDates = getCompletedDates();
+      completedDates = completedDates.filter(d => d !== todayStr);
+      saveCompletedDates(completedDates);
+      calculateAndShowStreak(completedDates);
+
+      habitIcon.innerHTML = `
+        <path d="M6.5 12h11M6.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5zM17.5 7h0a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v0a5 5 0 0 1 5-5z" stroke-linecap="round" stroke-linejoin="round"/>
+      `;
+      closeUndoModal();
+    });
+  </script>
+</body>
+</html>
