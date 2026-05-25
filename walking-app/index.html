@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aruku - 散歩ログ & GPS</title>
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <span class="brand-logo">🍃</span>
+                <h1 class="brand-title">Aruku</h1>
+            </div>
+            <span class="status-badge pulse-active" id="gps-status">GPS Ready</span>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main>
+            <!-- Stats Panel (Walk Dashboard) -->
+            <div class="stats-panel" id="stats-panel">
+                <div class="stat-box">
+                    <span class="stat-icon">⏱️</span>
+                    <div class="stat-content">
+                        <span class="stat-label">経過時間</span>
+                        <span class="stat-value" id="walk-time">00:00:00</span>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-box">
+                    <span class="stat-icon">🛣️</span>
+                    <div class="stat-content">
+                        <span class="stat-label">移動距離</span>
+                        <span class="stat-value">
+                            <span id="walk-distance">0</span>
+                            <span class="stat-unit">m</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Display Area -->
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
+
+            <!-- Camera Interface -->
+            <div class="camera-container">
+                <button id="take-photo-btn" class="glow-btn camera-btn">
+                    <span class="btn-icon">📷</span>
+                    <span class="btn-text">写真を撮る</span>
+                </button>
+                <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+            </div>
+
+            <!-- Welcome / Hero Section -->
+            <div class="hero-section">
+                <p class="hero-subtitle">ACTIVE WALK TRACKER</p>
+                <h2 class="hero-title">散歩を記録しよう</h2>
+                <p class="hero-desc">現在地を取得して、散歩の最初の一歩をログに残します。</p>
+            </div>
+
+            <!-- GPS Visualization Canvas (Radar Screen) -->
+            <div class="radar-container" id="radar-container">
+                <div class="radar-circle circle-1"></div>
+                <div class="radar-circle circle-2"></div>
+                <div class="radar-circle circle-3"></div>
+                <div class="radar-sweep"></div>
+                <div class="radar-marker" id="radar-marker">
+                    <span class="marker-dot"></span>
+                </div>
+                <div class="radar-placeholder-icon" id="radar-icon">📍</div>
+            </div>
+
+            <!-- Center Action Button -->
+            <div class="action-wrapper">
+                <button id="get-location-btn" class="glow-btn secondary-btn">
+                    <span class="btn-icon">🎯</span>
+                    <span class="btn-text">現在地</span>
+                </button>
+                <button id="start-walk-btn" class="glow-btn start-btn">
+                    <span class="btn-icon">🥾</span>
+                    <span class="btn-text">散歩開始</span>
+                </button>
+                <button id="end-walk-btn" class="glow-btn end-btn hidden">
+                    <span class="btn-icon">🛑</span>
+                    <span class="btn-text">散歩終了</span>
+                </button>
+            </div>
+
+            <!-- Results Card -->
+            <div class="location-card" id="location-card">
+                <div class="card-header">
+                    <span class="card-title-icon">📡</span>
+                    <h3>取得した位置情報</h3>
+                </div>
+                
+                <div class="data-grid">
+                    <div class="data-item animate-item-1">
+                        <div class="data-label">緯度 <span class="en-label">Latitude</span></div>
+                        <div class="data-value" id="val-latitude">--</div>
+                    </div>
+                    <div class="data-item animate-item-2">
+                        <div class="data-label">経度 <span class="en-label">Longitude</span></div>
+                        <div class="data-value" id="val-longitude">--</div>
+                    </div>
+                    <div class="data-item animate-item-3 full-width">
+                        <div class="data-label">精度 <span class="en-label">Accuracy</span></div>
+                        <div class="data-value-wrapper">
+                            <span class="data-value" id="val-accuracy">--</span>
+                            <span class="data-unit" id="val-accuracy-unit"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timestamp-row">
+                    <span class="timestamp-label">取得時刻:</span>
+                    <span class="timestamp-value" id="val-timestamp">--</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Custom Gentle Toast Alert Notification -->
+        <div class="toast-overlay" id="toast-overlay">
+            <div class="toast-card">
+                <div class="toast-icon" id="toast-icon">⚠️</div>
+                <div class="toast-content">
+                    <h4 class="toast-title" id="toast-title">位置情報の取得エラー</h4>
+                    <p class="toast-message" id="toast-message">位置情報をオンにしてください。</p>
+                </div>
+                <button class="toast-close" id="toast-close-btn">&times;</button>
+            </div>
+        </div>
+
+        <!-- Footer Decorator -->
+        <footer>
+            <p class="footer-text">🍃 Aruku v1.0.0 — Pure Geolocation LBS</p>
+        </footer>
+
+        <!-- Walk Summary Overlay -->
+        <div class="summary-overlay" id="summary-overlay">
+            <div class="summary-card">
+                <div class="summary-header">
+                    <span class="summary-badge">🏆 WALK COMPLETED</span>
+                    <h2>お散歩お疲れ様でした！</h2>
+                </div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-label">⏱️ 合計時間</span>
+                        <span class="summary-value" id="summary-time">00:00:00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">🛣️ 合計距離</span>
+                        <span class="summary-value" id="summary-distance">0 m</span>
+                    </div>
+                </div>
+                <button class="glow-btn close-summary-btn" id="close-summary-btn">
+                    <span class="btn-icon">👣</span>
+                    <span class="btn-text">閉じる</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Photo Preview Overlay -->
+        <div class="photo-overlay" id="photo-overlay">
+            <div class="photo-card">
+                <button class="photo-close" id="photo-close-btn">&times;</button>
+                <div class="photo-body">
+                    <img id="photo-preview-img" src="" alt="撮影写真">
+                </div>
+                <div class="photo-caption" id="photo-caption">撮影場所の位置情報</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet.js Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js"></script>
+</body>
+</html>

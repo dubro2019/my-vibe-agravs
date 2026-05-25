@@ -1,0 +1,1211 @@
+/* ==========================================================================
+   Design System & Premium Theme for Aruku GPS Walk Log
+   ========================================================================== */
+
+:root {
+    /* Color Palette - Forest & Active Tech */
+    --primary-emerald: #10B981;
+    --primary-mint: #34D399;
+    --primary-dark-emerald: #059669;
+    --bg-deep-forest: #08120E;
+    --bg-slate-forest: #0E221B;
+    --text-pure: #FFFFFF;
+    --text-muted: #9CA3AF;
+    --text-emerald-light: #A7F3D0;
+    
+    /* UI Dimensions */
+    --border-radius-lg: 24px;
+    --border-radius-md: 16px;
+    --border-radius-sm: 8px;
+    
+    /* Interactive States & Shadows */
+    --glass-bg: rgba(14, 34, 27, 0.45);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --emerald-glow: 0 0 20px rgba(16, 185, 129, 0.4);
+    --emerald-glow-hover: 0 0 35px rgba(16, 185, 129, 0.7);
+    
+    /* Fonts */
+    --font-heading: 'Outfit', 'Noto Sans JP', -apple-system, sans-serif;
+    --font-body: 'Noto Sans JP', -apple-system, sans-serif;
+}
+
+/* Reset and Global Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-deep-forest);
+    color: var(--text-pure);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(52, 211, 153, 0.06) 0%, transparent 45%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+}
+
+/* Mobile-First Premium Canvas App Container */
+.app-container {
+    width: 100%;
+    max-width: 440px;
+    min-height: 100vh;
+    background-color: rgba(8, 18, 14, 0.85);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    position: relative;
+    border-left: 1px solid rgba(16, 185, 129, 0.1);
+    border-right: 1px solid rgba(16, 185, 129, 0.1);
+    overflow: hidden;
+}
+
+@media (min-height: 750px) {
+    .app-container {
+        min-height: 700px;
+        height: 92vh;
+        border-radius: 32px;
+        border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+}
+
+/* ==========================================================================
+   Header Styling
+   ========================================================================== */
+header {
+    padding: 24px 24px 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.12);
+    background-color: rgba(8, 18, 14, 0.6);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.brand-logo {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.4));
+    animation: leafFloat 3s ease-in-out infinite;
+}
+
+.brand-title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text-pure), var(--primary-mint));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+.status-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: rgba(16, 185, 129, 0.15);
+    color: var(--primary-mint);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.status-badge.pulse-active {
+    animation: badgePulse 2s infinite;
+}
+
+.status-badge.status-error {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #F87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.status-badge.status-locating {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #60A5FA;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+/* ==========================================================================
+   Main Layout & Hero
+   ========================================================================== */
+main {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: none; /* Hide standard Firefox scrollbar */
+}
+
+main::-webkit-scrollbar {
+    display: none; /* Hide Chrome/Safari scrollbar */
+}
+
+.hero-section {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.hero-subtitle {
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--primary-mint);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.hero-title {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-pure);
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.hero-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   GPS Radar Visualizer Component
+   ========================================================================== */
+.radar-container {
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background-color: rgba(14, 34, 27, 0.4);
+    border: 2px solid rgba(16, 185, 129, 0.2);
+    position: relative;
+    margin: 0 auto 28px auto;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 
+        inset 0 0 25px rgba(16, 185, 129, 0.25),
+        0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.radar-circle {
+    position: absolute;
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 50%;
+}
+
+.circle-1 { width: 50px; height: 50px; }
+.circle-2 { width: 95px; height: 95px; }
+.circle-3 { width: 135px; height: 135px; }
+
+/* Grid Crosshairs */
+.radar-container::before,
+.radar-container::after {
+    content: '';
+    position: absolute;
+    background-color: rgba(16, 185, 129, 0.15);
+}
+
+.radar-container::before {
+    width: 100%;
+    height: 1px;
+    left: 0;
+    top: 50%;
+}
+
+.radar-container::after {
+    width: 1px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+}
+
+/* Radar Sweep Line Animation (only active when locating) */
+.radar-sweep {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(from 0deg at 50% 50%, rgba(16, 185, 129, 0.4) 0deg, rgba(16, 185, 129, 0) 90deg);
+    border-radius: 50%;
+    top: 0;
+    left: 0;
+    transform-origin: center;
+    opacity: 0; /* Hidden in idle */
+    z-index: 1;
+}
+
+/* Radar Sweeping Action class */
+.radar-container.is-locating .radar-sweep {
+    opacity: 1;
+    animation: radarSweepSpin 2s linear infinite;
+}
+
+/* Radar Pulse Waves */
+.radar-container.is-locating .radar-circle {
+    animation: radarPulse 2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+.radar-container.is-locating .circle-1 { animation-delay: 0s; }
+.radar-container.is-locating .circle-2 { animation-delay: 0.6s; }
+.radar-container.is-locating .circle-3 { animation-delay: 1.2s; }
+
+/* Coordinates Found Marker Dot */
+.radar-marker {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background-color: rgba(16, 185, 129, 0.2);
+    border: 1.5px solid var(--primary-mint);
+    border-radius: 50%;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: scale(0);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: var(--emerald-glow);
+}
+
+.radar-container.has-coords .radar-marker {
+    transform: scale(1);
+    /* Target marker offsets slightly off-center for high tech dynamic feel */
+    animation: markerFloating 4s ease-in-out infinite 0.6s;
+}
+
+.marker-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--text-pure);
+    border-radius: 50%;
+    box-shadow: 0 0 10px #FFFFFF;
+}
+
+.radar-placeholder-icon {
+    font-size: 40px;
+    filter: drop-shadow(var(--emerald-glow));
+    z-index: 2;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.radar-container.is-locating .radar-placeholder-icon {
+    transform: scale(0.8) rotate(15deg);
+    animation: radarIconWobble 1s ease-in-out infinite;
+}
+
+.radar-container.has-coords .radar-placeholder-icon {
+    opacity: 0;
+    transform: scale(0);
+}
+
+/* ==========================================================================
+   Centered Action Button (GREEN, Height 60px, prominent)
+   ========================================================================== */
+.action-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+button.glow-btn {
+    width: 100%;
+    height: 60px; /* Mandatory requirement: Height 60px */
+    background: linear-gradient(135deg, var(--primary-emerald), var(--primary-dark-emerald));
+    color: var(--text-pure);
+    border: none;
+    border-radius: 16px;
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--emerald-glow);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    animation: buttonPulseIdle 2.5s infinite; /* Gentle organic pulse when idle */
+}
+
+/* Hover and Focus States */
+button.glow-btn:hover {
+    background: linear-gradient(135deg, var(--primary-mint), var(--primary-emerald));
+    box-shadow: var(--emerald-glow-hover);
+    transform: translateY(-2px);
+}
+
+/* Active Pressed State */
+button.glow-btn:active {
+    transform: translateY(1px) scale(0.97);
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+}
+
+/* Button Locating State styling */
+button.glow-btn.is-loading {
+    background: var(--bg-slate-forest);
+    color: var(--primary-mint);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    box-shadow: none;
+    cursor: not-allowed;
+    animation: none;
+}
+
+button.glow-btn.is-loading .btn-icon {
+    animation: loadingSpin 1.2s linear infinite;
+}
+
+/* ==========================================================================
+   Results Location Details Card (Premium Glassmorphism)
+   ========================================================================== */
+.location-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--glass-shadow);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    opacity: 0;
+    transform: translateY(30px);
+    pointer-events: none;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Active coordinates display class */
+.location-card.show-card {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 10px;
+}
+
+.card-title-icon {
+    font-size: 18px;
+    filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.2));
+}
+
+.card-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-emerald-light);
+    letter-spacing: 0.5px;
+}
+
+/* Grid Layout for Numerical Results */
+.data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.data-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: var(--border-radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: transform 0.3s ease;
+}
+
+.data-item:hover {
+    background: rgba(16, 185, 129, 0.04);
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+.data-item.full-width {
+    grid-column: span 2;
+}
+
+.data-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.en-label {
+    font-family: var(--font-heading);
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.data-value {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-pure);
+    letter-spacing: -0.2px;
+    transition: all 0.3s ease;
+}
+
+/* Highlighted accuracy visual styling */
+.data-item.full-width .data-value {
+    color: var(--primary-mint);
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.25);
+}
+
+.data-value-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.data-unit {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+/* Time stamping */
+.timestamp-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    background: rgba(0, 0, 0, 0.15);
+    padding: 8px 14px;
+    border-radius: 20px;
+}
+
+.timestamp-value {
+    font-family: var(--font-heading);
+    font-weight: 600;
+}
+
+/* Grid Entry Animations */
+.location-card.show-card .animate-item-1 { animation: cardItemSlide 0.5s ease-out both 0.1s; }
+.location-card.show-card .animate-item-2 { animation: cardItemSlide 0.5s ease-out both 0.2s; }
+.location-card.show-card .animate-item-3 { animation: cardItemSlide 0.5s ease-out both 0.3s; }
+
+/* ==========================================================================
+   Gentle custom Alert/Toast notification Overlay
+   ========================================================================== */
+.toast-overlay {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    z-index: 2000;
+    pointer-events: none; /* Let clicks pass through when hidden */
+}
+
+.toast-card {
+    background: rgba(30, 15, 10, 0.95);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transform: translateY(120%) scale(0.9);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: all; /* Allow clicks on content */
+}
+
+.toast-overlay.active .toast-card {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Warm error alert color customizations */
+.toast-overlay.theme-info .toast-card {
+    background: rgba(10, 24, 30, 0.95);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.toast-icon {
+    font-size: 22px;
+    background: rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.toast-overlay.theme-info .toast-icon {
+    color: #3B82F6;
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.toast-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.toast-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #FECACA;
+}
+
+.toast-overlay.theme-info .toast-title {
+    color: #DBEAFE;
+}
+
+.toast-message {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.toast-close:hover {
+    opacity: 1;
+    color: var(--text-pure);
+}
+
+/* ==========================================================================
+   Footer Layout
+   ========================================================================== */
+footer {
+    padding: 16px 24px;
+    text-align: center;
+    border-top: 1px solid rgba(16, 185, 129, 0.08);
+    background-color: rgba(8, 18, 14, 0.3);
+}
+
+.footer-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.2);
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   Keyframes and Dynamic Micro-animations
+   ========================================================================== */
+
+/* Leaf Float Brand Icon Animation */
+@keyframes leafFloat {
+    0% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-4px) rotate(8deg); }
+    100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* Status GPS badge pulsing glow */
+@keyframes badgePulse {
+    0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.3); }
+    70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+/* Radar sweeps spinning */
+@keyframes radarSweepSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Expanding Radar Signals */
+@keyframes radarPulse {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.9;
+        border-color: rgba(16, 185, 129, 0.6);
+    }
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+        border-color: rgba(16, 185, 129, 0);
+    }
+}
+
+/* GPS Icon wobble during tracking */
+@keyframes radarIconWobble {
+    0%, 100% { transform: scale(0.8) rotate(15deg); }
+    50% { transform: scale(0.85) rotate(-15deg); }
+}
+
+/* Coordinates Found Target dot gentle drift */
+@keyframes markerFloating {
+    0%, 100% { transform: translate(6px, -12px); }
+    50% { transform: translate(-8px, 10px); }
+}
+
+/* Center Action Button idle call-to-action */
+@keyframes buttonPulseIdle {
+    0% { box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
+    50% { box-shadow: 0 6px 24px rgba(16, 185, 129, 0.6); }
+    100% { box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); }
+}
+
+/* Loading spin button icon */
+@keyframes loadingSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Slide in animation for data cards */
+@keyframes cardItemSlide {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   Leaflet Map Styling
+   ========================================================================== */
+#map-container {
+    width: 100%;
+    height: 400px;
+    margin-bottom: 28px;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    position: relative;
+    flex-shrink: 0;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-slate-forest);
+    z-index: 1;
+}
+
+/* Custom Styled Leaflet Controls */
+.leaflet-container .leaflet-control-attribution {
+    background: rgba(8, 18, 14, 0.75) !important;
+    color: var(--text-muted) !important;
+    font-family: var(--font-body);
+    font-size: 9px !important;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+    color: var(--primary-mint) !important;
+    text-decoration: none;
+}
+
+.leaflet-container .leaflet-control-attribution a:hover {
+    text-decoration: underline;
+}
+
+.leaflet-bar {
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+    border-radius: var(--border-radius-sm) !important;
+    overflow: hidden;
+}
+
+.leaflet-bar a {
+    background-color: var(--bg-slate-forest) !important;
+    color: var(--text-pure) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.leaflet-bar a:hover {
+    background-color: var(--primary-emerald) !important;
+    color: var(--text-pure) !important;
+}
+
+.leaflet-bar a.leaflet-disabled {
+    background-color: rgba(14, 34, 27, 0.5) !important;
+    color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Custom Marker Styling (Blue Pin & Ripple Effect) */
+.custom-blue-pin {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pin-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pin-pulse {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    background: rgba(59, 130, 246, 0.4);
+    border-radius: 50%;
+    animation: pinPulseAnimation 2s infinite;
+    z-index: -1;
+}
+
+.pin-svg {
+    filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.5));
+}
+
+@keyframes pinPulseAnimation {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+/* ==========================================================================
+   GPS Route Tracking Style Additions
+   ========================================================================== */
+
+/* Active Stats Panel styling */
+.stats-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--border-radius-md);
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    flex-shrink: 0;
+}
+
+.stats-panel.active {
+    background: rgba(16, 38, 30, 0.7);
+    border-color: rgba(52, 211, 153, 0.35);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.15), var(--glass-shadow);
+}
+
+.stat-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.2));
+    transition: transform 0.3s ease;
+}
+
+.stats-panel.active .stat-box:first-child .stat-icon {
+    animation: clockPulse 1.2s ease-in-out infinite alternate;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-pure);
+    transition: color 0.3s ease;
+}
+
+.stats-panel.active .stat-value {
+    color: var(--primary-mint);
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+}
+
+.stat-unit {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-left: 2px;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(16, 185, 129, 0.15);
+}
+
+/* Action Button Wrapper updates */
+.action-wrapper {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    width: 100%;
+}
+
+.glow-btn {
+    flex: 1;
+}
+
+.glow-btn.secondary-btn {
+    flex: 0 0 110px; /* fixed smaller size for mobile quick-tap */
+    background: rgba(14, 34, 27, 0.5);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    box-shadow: none;
+    animation: none;
+}
+
+.glow-btn.secondary-btn:hover {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: var(--primary-mint);
+    box-shadow: none;
+    transform: translateY(-2px);
+}
+
+.glow-btn.start-btn {
+    background: linear-gradient(135deg, var(--primary-emerald), var(--primary-dark-emerald));
+}
+
+.glow-btn.end-btn {
+    background: linear-gradient(135deg, #EF4444, #C53030);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.35);
+    animation: endBtnPulse 2s infinite;
+}
+
+.glow-btn.end-btn:hover {
+    background: linear-gradient(135deg, #F87171, #EF4444);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+    transform: translateY(-2px);
+}
+
+.glow-btn.end-btn:active {
+    transform: translateY(1px) scale(0.97);
+}
+
+/* Walk Summary Modal Overlay styling */
+.summary-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 12, 10, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 24px;
+}
+
+.summary-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.summary-card {
+    background: rgba(14, 34, 27, 0.85);
+    border: 1.5px solid rgba(16, 185, 129, 0.25);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    transform: scale(0.92);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.summary-overlay.active .summary-card {
+    transform: scale(1);
+}
+
+.summary-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.summary-header h2 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text-pure);
+    letter-spacing: -0.5px;
+    margin-top: 6px;
+}
+
+.summary-badge {
+    font-family: var(--font-heading);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: rgba(16, 185, 129, 0.15);
+    color: var(--primary-mint);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    letter-spacing: 1px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.summary-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-md);
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.summary-item:hover {
+    background: rgba(16, 185, 129, 0.04);
+}
+
+.summary-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.summary-value {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary-mint);
+    text-shadow: 0 0 8px rgba(52, 211, 153, 0.3);
+}
+
+.close-summary-btn {
+    width: 100%;
+    height: 54px;
+    background: linear-gradient(135deg, var(--primary-emerald), var(--primary-dark-emerald));
+    border-radius: 14px;
+}
+
+/* Animations */
+@keyframes clockPulse {
+    0% { transform: scale(1); filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.2)); }
+    100% { transform: scale(1.15) rotate(5deg); filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.5)); }
+}
+
+@keyframes endBtnPulse {
+    0% { box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35); }
+    50% { box-shadow: 0 6px 26px rgba(239, 68, 68, 0.65); }
+    100% { box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35); }
+}
+
+/* Helper utility class */
+.hidden {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Camera Interface & Photo Overlay Styles
+   ========================================================================== */
+
+.camera-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.camera-btn {
+    background: linear-gradient(135deg, var(--primary-emerald), var(--primary-dark-emerald));
+    width: 100%;
+    height: 60px;
+    box-shadow: var(--emerald-glow);
+}
+
+.camera-btn:hover {
+    background: linear-gradient(135deg, var(--primary-mint), var(--primary-emerald));
+    box-shadow: var(--emerald-glow-hover);
+}
+
+/* Custom Styled Leaflet Photo Markers */
+.photo-marker-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg-slate-forest);
+    border: 3px solid var(--primary-mint);
+    border-radius: 50% !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(52, 211, 153, 0.5);
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s, box-shadow 0.25s;
+    cursor: pointer;
+}
+
+.photo-marker-icon:hover {
+    transform: scale(1.18);
+    border-color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), 0 0 15px rgba(52, 211, 153, 0.8);
+    z-index: 9999 !important;
+}
+
+.photo-marker-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Photo Modal Overlay (Premium Glassmorphism Style) */
+.photo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 12, 10, 0.95);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    z-index: 3500;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 24px;
+}
+
+.photo-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.photo-card {
+    background: rgba(14, 34, 27, 0.85);
+    border: 1.5px solid rgba(16, 185, 129, 0.25);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    padding: 16px;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    transform: scale(0.92);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.photo-overlay.active .photo-card {
+    transform: scale(1);
+}
+
+.photo-close {
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    color: var(--text-pure);
+    font-size: 32px;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+    line-height: 1;
+}
+
+.photo-close:hover {
+    opacity: 1;
+    color: #F87171;
+}
+
+.photo-body {
+    width: 100%;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    aspect-ratio: 4 / 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+}
+
+.photo-body img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.photo-caption {
+    font-size: 13px;
+    color: var(--text-emerald-light);
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
