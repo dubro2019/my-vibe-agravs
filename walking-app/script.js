@@ -99,6 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
             restoreCapturedPhotos();
             // Check for walk recovery after map is loaded
             checkWalkRecovery();
+            // Load and display last saved walk route if present
+            loadLastWalk();
         }, 400);
     }
 
@@ -483,6 +485,30 @@ document.addEventListener('DOMContentLoaded', () => {
         endWalk();
     });
 
+    // --- 既存の endWalkBtn の処理の中に以下を組み込む ---
+    endWalkBtn.addEventListener('click', () => {
+        // 【既存の処理】タイマーを止める、ダイアログを出すなど
+        // ...省略...
+
+        // 【新規追加】LocalStorageに保存する処理
+        const newLog = {
+            id: Date.now(), 
+            date: new Date().toLocaleDateString('ja-JP'), 
+            time: walkTime.textContent,       // 画面上の現在の時間テキストを取得
+            distance: walkDistance.textContent // 画面上の現在の距離テキストを取得
+        };
+
+        let walkHistory = JSON.parse(localStorage.getItem('aruku_walk_history')) || [];
+        walkHistory.unshift(newLog); // 最新を先頭に追加
+        localStorage.setItem('aruku_walk_history', JSON.stringify(walkHistory));
+
+        // 表示を更新
+        displayHistory();
+    });
+
+
+
+
     closeSummaryBtn.addEventListener('click', () => {
         summaryOverlay.classList.remove('active');
     });
@@ -661,6 +687,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Load and render last saved walk route on startup
+    function loadLastWalk() {
+        const savedPath = localStorage.getItem('aruku_last_walk_path');
+        const savedDistance = localStorage.getItem('aruku_last_walk_distance');
+        const savedTime = localStorage.getItem('aruku_last_walk_time');
+        if (savedPath && savedDistance && savedTime) {
+            try {
+                const path = JSON.parse(savedPath);
+                if (path.length > 0 && map) {
+                    // Draw polyline
+                    const poly = L.polyline(path, {
+                        color: '#FF3B30',
+                        weight: 6,
+                        opacity: 0.9,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    }).addTo(map);
+                    // Place marker at last point
+                    const last = path[path.length - 1];
+                    L.marker(last, { icon: bluePinIcon }).addTo(map);
+                    // Fit map to route
+                    const bounds = L.latLngBounds(path);
+                    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17, animate: true, duration: 1.8 });
+                    // Show summary overlay
+                    summaryTime.textContent = savedTime;
+                    summaryDistance.textContent = `${Math.round(parseFloat(savedDistance)).toLocaleString()} m`;
+                    summaryOverlay.classList.add('active');
+                }
+            } catch (e) {
+                console.error('Failed to load last walk', e);
+            }
+        }
+    }
+
+    // === 履歴表示用関数（LocalStorageから読み込んでHTMLを生成） ===
+    function displayHistory() {
+        const historyContainer = document.getElementById('history-list');
+        if (!historyContainer) return;
+
+        // LocalStorageからデータを取得（なければ空の配列）
+        const walkHistory = JSON.parse(localStorage.getItem('aruku_walk_history')) || [];
+
+        // 一旦表示をクリア
+        historyContainer.innerHTML = '';
+
+        if (walkHistory.length === 0) {
+            historyContainer.innerHTML = '<p class="text-muted" style="text-align:center; padding:20px;">まだ散歩の履歴はありません。</p>';
+            return;
+        }
+
+        // 履歴をループしてHTMLを生成
+        walkHistory.forEach(log => {
+            const item = document.createElement('div');
+            // 将来的にファイルダウンロードボタンを追加しやすいようにクラスを付与
+            item.className = 'history-item'; 
+            item.innerHTML = `
+                <div class="history-date">${log.date}</div>
+                <div class="history-details">
+                    <span>⏱️ ${log.time}</span>
+                    <span>🛣️ ${log.distance}</span>
+                </div>
+            `;
+            historyContainer.appendChild(item);
+        });
+    }
+
     // --- Original Single Geolocation Fetch Button ---
     
     getBtn.addEventListener('click', () => {
@@ -793,4 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
             geoOptions
         );
     });
+
+    // 【新規追加】起動時に過去の履歴を表示する
+    displayHistory();
 });
