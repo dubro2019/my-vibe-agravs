@@ -721,12 +721,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // === 履歴表示用関数（LocalStorageから読み込んでHTMLを生成） ===
+    // === 履歴表示用関数（安全なイベント紐付け版にアップデート） ===
     function displayHistory() {
         const historyContainer = document.getElementById('history-list');
         if (!historyContainer) return;
 
-        // LocalStorageからデータを取得（なければ空の配列）
+        // LocalStorageからデータを取得
         const walkHistory = JSON.parse(localStorage.getItem('aruku_walk_history')) || [];
 
         // 一旦表示をクリア
@@ -740,19 +740,55 @@ document.addEventListener('DOMContentLoaded', () => {
         // 履歴をループしてHTMLを生成
         walkHistory.forEach(log => {
             const item = document.createElement('div');
-            // 将来的にファイルダウンロードボタンを追加しやすいようにクラスを付与
             item.className = 'history-item'; 
+            
             item.innerHTML = `
-                <div class="history-date">${log.date}</div>
-                <div class="history-details">
-                    <span>⏱️ ${log.time}</span>
-                    <span>🛣️ ${log.distance}</span>
+                <div class="history-left">
+                    <div class="history-date">${log.date}</div>
+                    <div class="history-details">
+                        <span>⏱️ ${log.time}</span>
+                        <span>🛣️ ${log.distance}</span>
+                    </div>
                 </div>
+                <button class="delete-history-btn" title="この履歴を削除">
+                    🗑️
+                </button>
             `;
+
+            // HTMLを作った直後に、その中のゴミ箱ボタンに対して直接クリックイベントを設定します
+            const deleteBtn = item.querySelector('.delete-history-btn');
+            deleteBtn.addEventListener('click', () => {
+                deleteHistoryItem(log.id);
+            });
+
             historyContainer.appendChild(item);
         });
     }
 
+    // === 履歴を1件削除する関数 ===
+    function deleteHistoryItem(logId) {
+        // ユーザーに確認のポップアップを出す
+        if (!confirm('この散歩履歴を削除してもよろしいですか？')) {
+            return; // キャンセルされたら何もしない
+        }
+
+        // 1. 現在の履歴をLocalStorageから取得
+        let walkHistory = JSON.parse(localStorage.getItem('aruku_walk_history')) || [];
+
+        // 2. 指定されたID「以外」のデータだけを残す
+        walkHistory = walkHistory.filter(log => log.id !== logId);
+
+        // 3. 削除後の新しい配列をLocalStorageに再保存
+        localStorage.setItem('aruku_walk_history', JSON.stringify(walkHistory));
+
+        // 4. 画面の履歴一覧の表示を更新
+        displayHistory();
+        
+        // Arukuに標準搭載されている綺麗なトースト通知で完了を知らせる
+        showGentleToast('履歴の削除', '散歩履歴を1件削除しました。', false);
+    }
+
+    
     // --- Original Single Geolocation Fetch Button ---
     
     getBtn.addEventListener('click', () => {

@@ -1239,3 +1239,32 @@ footer {
     font-size: 0.95rem;
     color: var(--text-emerald-light);
 }
+
+/* 履歴アイテムの中の左側ブロック（日付と詳細） */
+.history-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* 削除ボタン（ゴミ箱）のスタイル */
+.delete-history-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+}
+
+/* マウスホバー時（スマホならタップ時）の演出 */
+.delete-history-btn:hover {
+    opacity: 1;
+    background: rgba(239, 68, 68, 0.15); /* 赤い半透明の背景 */
+    transform: scale(1.1);
+}
