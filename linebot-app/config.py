@@ -10,8 +10,7 @@ class Settings(BaseSettings):
     """
     Application Settings configuration.
     Uses Pydantic Settings to load and validate variables from the environment
-    and the .env file. If required variables are missing, it raises a
-    ValidationError at startup, preventing runtime failures.
+    and the .env file.
     """
     port: int = Field(default=8000, validation_alias="PORT")
     host: str = Field(default="0.0.0.0", validation_alias="HOST")
@@ -19,17 +18,29 @@ class Settings(BaseSettings):
     line_channel_id: str = Field(..., validation_alias="LINE_CHANNEL_ID")
     line_channel_secret: str = Field(..., validation_alias="LINE_CHANNEL_SECRET")
     line_channel_access_token: str = Field(..., validation_alias="LINE_CHANNEL_ACCESS_TOKEN")
-    line_target_user_id: str = Field(..., validation_alias="LINE_TARGET_USER_ID")
+    
+    # ★ 変更: JSONパースエラーを避けるため、型を str でプレーンに受け取る
+    line_target_user_ids_raw: str = Field(..., validation_alias="LINE_TARGET_USER_IDS")
+
+    # ★ 追加: main.py から「.line_target_user_ids」としてアクセスされた時にリストを返すプロパティ
+    @property
+    def line_target_user_ids(self) -> list[str]:
+        if not self.line_target_user_ids_raw:
+            return []
+        # カンマで分割し、前後の空白を除去、空文字を排除したリストを作成
+        return [
+            uid.strip() 
+            for uid in self.line_target_user_ids_raw.split(",") 
+            if uid.strip()
+        ]
 
     # ==========================================
     # 【追加】リマインダー配信時刻の設定
     # ==========================================
-    # .env に指定がない場合は、デフォルトで「21時00分（Asia/Tokyo）」になります。
     reminder_hour: int = Field(default=21, validation_alias="REMINDER_HOUR")
     reminder_minute: int = Field(default=0, validation_alias="REMINDER_MINUTE")
     reminder_timezone: str = Field(default="Asia/Tokyo", validation_alias="REMINDER_TIMEZONE")
 
-    # ★ 追加：リマインダーの本文（指定がない場合のデフォルト値も設定）
     daily_reminder_text: str = Field(
         default="本日の日記を入力してください", 
         validation_alias="DAILY_REMINDER_TEXT"
@@ -58,7 +69,6 @@ class Settings(BaseSettings):
             if response.status_code == 200:
                 return response.json().get("access_token")
             else:
-                # print から logger.error へ変更し、本番ログに統合
                 logger.error(f"LINEアクセストークンの取得に失敗しました。ステータスコード: {response.status_code}, レスポンス: {response.text}")
                 return None
         except Exception as e:

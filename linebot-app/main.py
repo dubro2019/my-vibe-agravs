@@ -181,22 +181,47 @@ async def push_line_message(http_client: httpx.AsyncClient, user_id: str, text: 
 # Scheduled job – daily reminder
 # ------------------------------------------------------------
 async def daily_reminder_job() -> None:
-    """Send daily reminder. On error, notify the same user.
+    """Send daily reminder to multiple users. On error, notify the same user.
     """
     http_client: httpx.AsyncClient = app.state.http_client
-    user_id = settings.line_target_user_id  
-    
-    # ★ 修正：config から環境変数のテキストを取得（念のためフォールバックを用意）
+
+    # ★ 変更: config からユーザーIDのリストを取得
+    user_ids = getattr(settings, "line_target_user_ids", [])  
+
     reminder_text = getattr(settings, "daily_reminder_text", "本日の日記を入力してください")
     
-    try:
-        await push_line_message(http_client, user_id, reminder_text)
-    except Exception as exc:
-        error_text = f"⚠️ リマインダー送信に失敗しました: {exc}"
+    # ★ 変更: ユーザーごとにループ処理
+    for user_id in user_ids:
+        # 空文字のスキップ対策
+        if not user_id.strip():
+            continue
+            
         try:
-            await push_line_message(http_client, user_id, error_text)
-        except Exception:
-            logger.error("Failed to send error notification to user.")
+            await push_line_message(http_client, user_id.strip(), reminder_text)
+        except Exception as exc:
+            error_text = f"⚠️ リマインダー送信に失敗しました: {exc}"
+            try:
+                await push_line_message(http_client, user_id.strip(), error_text)
+            except Exception:
+                logger.error(f"Failed to send error notification to user: {user_id}")
+
+# ------------------------------------------------------------
+# Test endpoint to manually trigger a push (development only)
+# ------------------------------------------------------------
+@app.get("/test-push", summary="Manual push test")
+async def test_push():
+    # ★ 変更: テストエンドポイントも複数対応に修正
+    http_client = app.state.http_client
+    user_ids = getattr(settings, "line_target_user_ids", [])
+    
+    sent_count = 0
+    for user_id in user_ids:
+        if not user_id.strip():
+            continue
+        await push_line_message(http_client, user_id.strip(), "テストプッシュメッセージ")
+        sent_count += 1
+        
+    return {"status": "push_sent", "targets_count": sent_count}
 
 # ==========================================
 # 5. Core Webhook Handler (/callback)
