@@ -185,7 +185,10 @@ async def daily_reminder_job() -> None:
     """
     http_client: httpx.AsyncClient = app.state.http_client
     user_id = settings.line_target_user_id  
-    reminder_text = "本日の日記を入力してください"
+    
+    # ★ 修正：config から環境変数のテキストを取得（念のためフォールバックを用意）
+    reminder_text = getattr(settings, "daily_reminder_text", "本日の日記を入力してください")
+    
     try:
         await push_line_message(http_client, user_id, reminder_text)
     except Exception as exc:

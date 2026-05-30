@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     reminder_minute: int = Field(default=0, validation_alias="REMINDER_MINUTE")
     reminder_timezone: str = Field(default="Asia/Tokyo", validation_alias="REMINDER_TIMEZONE")
 
+    # ★ 追加：リマインダーの本文（指定がない場合のデフォルト値も設定）
+    daily_reminder_text: str = Field(
+        default="本日の日記を入力してください", 
+        validation_alias="DAILY_REMINDER_TEXT"
+    )
+
     # Load from .env file if it exists, otherwise fall back to environment variables.
     model_config = SettingsConfigDict(
         env_file=".env",
