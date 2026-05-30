@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     line_channel_id: str = Field(..., validation_alias="LINE_CHANNEL_ID")
     line_channel_secret: str = Field(..., validation_alias="LINE_CHANNEL_SECRET")
     line_channel_access_token: str = Field(..., validation_alias="LINE_CHANNEL_ACCESS_TOKEN")
+    line_target_user_id: str = Field(..., validation_alias="LINE_TARGET_USER_ID")
+
+    # ==========================================
+    # 【追加】リマインダー配信時刻の設定
+    # ==========================================
+    # .env に指定がない場合は、デフォルトで「21時00分（Asia/Tokyo）」になります。
+    reminder_hour: int = Field(default=21, validation_alias="REMINDER_HOUR")
+    reminder_minute: int = Field(default=0, validation_alias="REMINDER_MINUTE")
+    reminder_timezone: str = Field(default="Asia/Tokyo", validation_alias="REMINDER_TIMEZONE")
 
     # Load from .env file if it exists, otherwise fall back to environment variables.
     model_config = SettingsConfigDict(
@@ -38,14 +47,16 @@ class Settings(BaseSettings):
             "client_secret": self.line_channel_secret
         }
         
-        response = requests.post(url, headers=headers, data=data)
-        
-        if response.status_code == 200:
-            # 成功すると、JSONの中に 'access_token' が入って返ってきます
-            return response.json().get("access_token")
-        else:
-            print(f"エラーが発生しました: {response.status_code}")
-            print(response.text)
+        try:
+            response = requests.post(url, headers=headers, data=data)
+            if response.status_code == 200:
+                return response.json().get("access_token")
+            else:
+                # print から logger.error へ変更し、本番ログに統合
+                logger.error(f"LINEアクセストークンの取得に失敗しました。ステータスコード: {response.status_code}, レスポンス: {response.text}")
+                return None
+        except Exception as e:
+            logger.error(f"LINEアクセストークン取得中に予期せぬエラーが発生しました: {e}", exc_info=True)
             return None
 
 try:

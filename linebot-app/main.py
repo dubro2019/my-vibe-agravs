@@ -10,6 +10,8 @@ from fastapi import FastAPI, Request, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from config import settings
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 # ==========================================
 # 1. Logging Setup (Production Grade)
@@ -32,18 +34,36 @@ async def lifespan(app: FastAPI):
     """
     Manages the application lifecycle.
     Initializes a global httpx.AsyncClient during startup and closes it on shutdown.
-    This creates an HTTP connection pool, optimizing outbound performance and latency
-    when replying to the LINE servers.
+    Also starts the APScheduler for daily reminder at configured JST time.
     """
     logger.info("Initializing HTTP client connection pool...")
-    # Setup AsyncClient with connection pool options and timeouts
     limits = httpx.Limits(max_keepalive_connections=10, max_connections=20)
     app.state.http_client = httpx.AsyncClient(
         limits=limits,
         timeout=httpx.Timeout(10.0, connect=2.0)
     )
+    # -------------------- Scheduler start --------------------
+    scheduler = AsyncIOScheduler()
+    
+    # 【変更点】configから配信時刻（時・分）を取得（設定がない場合はデフォルト21:00）
+    # ※ settingsの仕様に合わせて、プロパティ名（例: settings.reminder_hour）は適宜調整してください。
+    reminder_hour = getattr(settings, "reminder_hour", 21)
+    reminder_minute = getattr(settings, "reminder_minute", 0)
+    
+    # ユーザー指定のタイムゾーン（デフォルトは Asia/Tokyo）
+    reminder_timezone = getattr(settings, "reminder_timezone", "Asia/Tokyo")
+
+    trigger = CronTrigger(hour=reminder_hour, minute=reminder_minute, timezone=reminder_timezone)
+    scheduler.add_job(daily_reminder_job, trigger)
+    scheduler.start()
+    
+    logger.info(f"APScheduler started – daily reminder scheduled at {reminder_hour:02d}:{reminder_minute:02d} ({reminder_timezone}).")
+    app.state.scheduler = scheduler
+    # -------------------------------------------------------
     yield
-    logger.info("Closing HTTP client connection pool...")
+    # -------------------- Scheduler shutdown --------------------
+    logger.info("Shutting down scheduler and HTTP client...")
+    scheduler.shutdown(wait=False)
     await app.state.http_client.aclose()
 
 
@@ -136,6 +156,45 @@ async def send_line_reply(
         logger.error(f"Unexpected error while sending reply: {e}", exc_info=True)
 
 
+# ------------------------------------------------------------
+# Push Message Helper (uses shared httpx client)
+# ------------------------------------------------------------
+async def push_line_message(http_client: httpx.AsyncClient, user_id: str, text: str) -> None:
+    """Send a push message to a specified LINE user.
+    Raises on failure so the caller can handle error notification.
+    """
+    url = "https://api.line.me/v2/bot/message/push"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer { settings.get_line_channel_access_token() }"
+    }
+    payload = {"to": user_id, "messages": [{"type": "text", "text": text}]}
+    try:
+        response = await http_client.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        logger.info(f"Push message sent to {user_id[:8]} – status {response.status_code}")
+    except Exception as e:
+        logger.error(f"Failed to push message to {user_id}: {e}")
+        raise
+
+# ------------------------------------------------------------
+# Scheduled job – daily reminder
+# ------------------------------------------------------------
+async def daily_reminder_job() -> None:
+    """Send daily reminder. On error, notify the same user.
+    """
+    http_client: httpx.AsyncClient = app.state.http_client
+    user_id = settings.line_target_user_id  
+    reminder_text = "本日の日記を入力してください"
+    try:
+        await push_line_message(http_client, user_id, reminder_text)
+    except Exception as exc:
+        error_text = f"⚠️ リマインダー送信に失敗しました: {exc}"
+        try:
+            await push_line_message(http_client, user_id, error_text)
+        except Exception:
+            logger.error("Failed to send error notification to user.")
+
 # ==========================================
 # 5. Core Webhook Handler (/callback)
 # ==========================================
@@ -151,7 +210,6 @@ async def callback(
     """
     # 1. Read Raw Request Body
     raw_body = await request.body()
-    body_str = raw_body.decode("utf-8")
     
     # 2. Perform Security Verification
     if not verify_line_signature(raw_body, x_line_signature, settings.line_channel_secret):
@@ -202,7 +260,6 @@ async def callback(
                     await send_line_reply(http_client, reply_token, user_text)
                 else:
                     # Capture and log stamps, images, video, file, location, etc. safely.
-                    # As requested: logs are recorded and the app continues gracefully.
                     logger.warning(
                         f"Unsupported non-text message type received: '{message_type}'. "
                         "Skipping reply logic for this message."
@@ -211,13 +268,10 @@ async def callback(
                 logger.info(f"Unsupported event type received: '{event_type}'. Skipping.")
 
         except Exception as event_err:
-            # Catch errors in processing a single event to avoid stopping the loop
-            # and crashing the server. This ensures robust handling of all batch events.
             logger.error(
                 f"Error occurred while processing event {event.get('id', 'unknown')}: {event_err}",
                 exc_info=True
             )
-            # Proceed to the next event in the queue...
             continue
 
     # Return HTTP 200 OK immediately to acknowledge webhook receipt
@@ -231,14 +285,20 @@ async def callback(
 async def health_check():
     """
     A simple health check endpoint to confirm that the server is alive and running.
-    Useful for system monitoring and container health probes.
     """
     return {"status": "healthy", "service": "line-bot-backend"}
+
+# ------------------------------------------------------------
+# Test endpoint to manually trigger a push (development only)
+# ------------------------------------------------------------
+@app.get("/test-push", summary="Manual push test")
+async def test_push():
+    await push_line_message(app.state.http_client, settings.line_target_user_id, "テストプッシュメッセージ")
+    return {"status": "push_sent"}
 
 
 if __name__ == "__main__":
     import uvicorn
-    # Launch uvicorn server directly if main.py is run directly
     logger.info(f"Starting server on {settings.host}:{settings.port}...")
     uvicorn.run(
         "main:app",
