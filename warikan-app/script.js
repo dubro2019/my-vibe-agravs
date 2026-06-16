@@ -14,7 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const bossCount = parseInt(bossInput.value, 10) || 0;
         const subCount = parseInt(subInput.value, 10) || 0;
 
-        if (total <= 0) {
+        // 負の数に対するバリデーションを追加
+        if (total < 0 || bossCount < 0 || subCount < 0) {
+            alert('入力値にマイナスの値が含まれています。正しく入力してください。');
+            return;
+        }
+
+        if (total === 0) {
             alert('総額を正しく入力してください。');
             return;
         }
@@ -50,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
         resBoss.textContent = bossPay.toLocaleString();
         resSub.textContent = subPay.toLocaleString();
         resRemainder.textContent = remainder.toLocaleString();
+
+        // 0人のグループの行を非表示にする制御を追加
+        const bossRow = document.getElementById('row-boss');
+        const subRow = document.getElementById('row-sub');
+        if (bossRow) bossRow.style.display = bossCount === 0 ? 'none' : 'flex';
+        if (subRow) subRow.style.display = subCount === 0 ? 'none' : 'flex';
 
         resultContainer.style.display = 'block';
         
