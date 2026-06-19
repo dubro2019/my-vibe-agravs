@@ -1,6 +1,6 @@
 # 割り勘計算機 (Warikan Calculator)
 
-![Demo Screenshot](placeholder.png)
+![Demo Screenshot](screen_image.png)
 
 ## 📖 概要
 このシンプルなウェブアプリは、**上司と部下の人数を考慮した割り勘計算** を行います。総額を入力し、上司と部下それぞれの人数を指定するだけで、上司の支払額・部下の支払額・余り（積立金）を自動計算します。UI は iOS のデザイン言語を参考にした **モダンで洗練された** 見た目です。
