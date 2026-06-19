@@ -22,7 +22,7 @@
 **インストール手順**
 1. リポジトリをクローンまたはダウンロード
    ```powershell
-   git clone https://github.com/your-user/warikan-app.git
+   git clone https://dubro2019.github.io/my-vibe-agravs/warikan-app.git
    cd warikan-app
    ```
 2. （オプション）ローカルサーバーで開発したい場合は npm を初期化
@@ -32,8 +32,12 @@
    ```
 3. 依存関係は特にありません。HTML、CSS、JS のファイルだけで完結しています。
 
-## 🚀 ローカル起動・使い方
-### 1. 手軽にブラウザで開く（推奨）
+## 🚀 起動・使い方
+### 1. GitHub Pages で開く（推奨）
+以下の URL にアクセスしてください。
+- https://dubro2019.github.io/my-vibe-agravs/warikan-app/
+
+### 2. 手軽にブラウザで開く
 `warikan-app` ディレクトリで以下のファイルを直接開くだけです。
 - `index.html`
 - `style.css`
@@ -43,7 +47,7 @@
 start .\index.html   # PowerShell でデフォルトブラウザが立ち上がります
 ```
 
-### 2. ローカルサーバーで起動（開発向け）
+### 3. ローカルサーバーで起動（開発向け）
 ```powershell
 npx http-server . -p 8080
 # または
