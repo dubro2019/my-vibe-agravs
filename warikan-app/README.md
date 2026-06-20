@@ -75,6 +75,7 @@ npx -y http-server . -p 8080   # 事前インストールが不要な場合
 | テスト | 手動テスト（ブラウザ） |
 
 ## 📂 ディレクトリ構成
+
 ```
 warikan-app/
 ├─ index.html      # メイン HTML
@@ -83,6 +84,7 @@ warikan-app/
 ├─ README.md
 ├─ screen_image.png
 └─ ...
+```
 
 ## 📄 ライセンス
 MIT ライセンス。自由に改変・再配布が可能です。
