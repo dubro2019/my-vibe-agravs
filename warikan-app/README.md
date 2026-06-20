@@ -79,8 +79,10 @@ npx -y http-server . -p 8080   # 事前インストールが不要な場合
 warikan-app/
 ├─ index.html      # メイン HTML
 ├─ style.css       # UI スタイル（iOS テーマ）
-└─ script.js       # 計算ロジック & UI 制御
-```
+├─ script.js       # 計算ロジック & UI 制御
+├─ README.md
+├─ screen_image.png
+└─ ...
 
 ## 📄 ライセンス
 MIT ライセンス。自由に改変・再配布が可能です。

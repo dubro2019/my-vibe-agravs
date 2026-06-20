@@ -37,14 +37,20 @@
 
 ## 🚀 起動・使い方
 
-### 1. 開発サーバーを起動
+### 1. GitHub Pages で開く（推奨）
+以下の URL にアクセスしてください。
+- https://dubro2019.github.io/my-vibe-agravs/shukan-app/www/
+
+
+
+### 2. 開発サーバーを起動
 ```bash
 npm run dev
 ```
 
 その後、ブラウザで `http://localhost:5173` にアクセスします。
 
-### 2. 使い方
+### 使い方
 1. 右上の歯車アイコンをクリックして目標を設定
 2. 「完了」ボタンを押すと達成が記録され、バナーと confetti が表示される
 3. カード上部でストリークを確認
@@ -79,7 +85,13 @@ shukan-app/
 ├─ screen_image.png
 ├─ www/          # アプリ本体
 └─ ...
+
+
 ```
 
 ## 📄 ライセンス
 MIT ライセンス。自由に改変・再配布できます。
+
+---
+**Powered by Antigravity** – your AI‑assisted development partner.
+
