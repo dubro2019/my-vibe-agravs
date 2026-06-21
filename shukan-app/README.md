@@ -24,10 +24,12 @@
 - npm または yarn
 
 **インストール手順**
-1. `shukan-app` フォルダに移動
-   ```bash
-   cd /home/yutaka/src/github/my-vibe-agravs/shukan-app
+1. リポジトリをクローンまたはダウンロード
+   ```powershell
+   git clone https://dubro2019.github.io/my-vibe-agravs/shukan-app.git
+   cd shukan-app
    ```
+
 2. 依存パッケージをインストール
    ```bash
    npm install
